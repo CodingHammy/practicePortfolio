@@ -4,6 +4,7 @@ import Project from '../components/Project';
 import { ProjectType } from '../types/project';
 import AddNewProject from '../components/AddNewProject';
 import Backdrop from '../components/Backdrop';
+import axios from 'axios';
 
 interface ApiResponse {
   success: boolean;
@@ -30,6 +31,18 @@ export default function Projects() {
     fetchProjects();
   }, []);
 
+  const deleteProject = async (id: string) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/projects/${id}`);
+      setProjects(prevProjects =>
+        prevProjects.filter(project => project._id !== id),
+      );
+      console.log('Project Deleted');
+    } catch (error) {
+      console.error('error deleting Project', error);
+    }
+  };
+
   const onCloseModal = () => {
     setToggleAddNewInput(false);
   };
@@ -50,7 +63,9 @@ export default function Projects() {
       <div className='gap-0.5 flex-col flex'>
         {Array.isArray(projects) &&
           projects.map(item => {
-            return <Project key={item._id} {...item} />;
+            return (
+              <Project onDelete={deleteProject} key={item._id} {...item} />
+            );
           })}
       </div>
     </main>

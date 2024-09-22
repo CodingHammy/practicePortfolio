@@ -10,7 +10,4 @@ export type ProjectType = {
   updatedAT: string;
 };
 
-export type ProjectFormType = Omit<
-  ProjectType,
-  '_id' | 'createdAT' | 'updatedAT'
->;
+export type ProjectFormType = Omit<ProjectType, 'createdAT' | 'updatedAT'>;
