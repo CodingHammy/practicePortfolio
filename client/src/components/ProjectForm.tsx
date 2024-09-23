@@ -1,12 +1,20 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { ProjectFormType } from '../types/project';
 import axios from 'axios';
 
 interface Props {
   onCloseModal: () => void;
+  initialData?: ProjectFormType;
+  id: string;
+  triggerFetch: () => void;
 }
 
-export default function AddNewProject({ onCloseModal }: Props) {
+export default function AddNewProject({
+  onCloseModal,
+  initialData,
+  id,
+  triggerFetch,
+}: Props) {
   const [isloading, setisloading] = useState(false);
   const [formdata, setFormData] = useState<ProjectFormType>({
     name: '',
@@ -17,6 +25,19 @@ export default function AddNewProject({ onCloseModal }: Props) {
     tech: [],
   });
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData?.name,
+        repoLink: initialData?.repoLink,
+        siteLink: initialData?.siteLink,
+        image: initialData?.image,
+        blurb: initialData?.blurb,
+        tech: initialData?.tech,
+      });
+    }
+  }, [initialData]);
+
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -25,10 +46,8 @@ export default function AddNewProject({ onCloseModal }: Props) {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prevData => {
         const newTech = checked
-          ? // after changed checks if checked
-            [...prevData.tech, value]
-          : //   if checked add value
-            prevData.tech.filter(tech => tech !== value);
+          ? [...prevData.tech, value]
+          : prevData.tech.filter(tech => tech !== value);
         return { ...prevData, tech: newTech };
       });
     } else {
@@ -43,11 +62,20 @@ export default function AddNewProject({ onCloseModal }: Props) {
     e.preventDefault();
     setisloading(true);
     try {
-      const response = await axios.post(
-        'http://localhost:5000/api/projects',
-        formdata,
-      );
-      console.log('success', response.data);
+      if (initialData) {
+        const response = await axios.put(
+          `http://localhost:5000/api/projects/${id}`,
+          formdata,
+        );
+        console.log('success', response.data);
+      } else {
+        const response = await axios.post(
+          'http://localhost:5000/api/projects',
+          formdata,
+        );
+        console.log('success', response.data);
+      }
+      triggerFetch();
       setFormData({
         name: '',
         repoLink: '',
@@ -65,6 +93,11 @@ export default function AddNewProject({ onCloseModal }: Props) {
 
   return (
     <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[99] bg-slate-400 w-3/4 h-5/6 rounded-xl '>
+      {initialData ? (
+        <h2 className='flex items-center justify-center'>Edit Project</h2>
+      ) : (
+        <h2 className='flex items-center justify-center'>Add New Project</h2>
+      )}
       {isloading ? (
         <p className='h-full text-2xl font-bold flex items-center justify-center'>
           Posting. . .
